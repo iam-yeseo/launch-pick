@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>런치Pick - 오늘 뭐 먹지?</title>
+    <style>
+        /* 1. 기본 스타일 설정 */
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        /* 2. 메인 카드 디자인 */
+        .container {
+            background: white;
+            width: 90%;
+            max-width: 400px;
+            padding: 40px 20px;
+            border-radius: 24px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            text-align: center;
+            border: 1px solid #e1e1e1;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+            font-weight: 800;
+        }
+
+        p.subtitle {
+            color: #666;
+            margin-top: 0;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        /* 3. 슬롯머신 창 디자인 */
+        .slot-machine {
+            background: #222;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+            border: 4px solid #FFD700; /* 금색 테두리 */
+            position: relative;
+            overflow: hidden;
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .slot-text {
+            color: #fff;
+            font-size: 32px;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        /* 텍스트가 돌아가는 동안 흐릿하게 보이는 효과 */
+        .blur {
+            filter: blur(3px);
+            opacity: 0.8;
+        }
+
+        /* 4. 상태 메시지 (지금 뭐 뽑는 중인지) */
+        .status-badge {
+            display: inline-block;
+            background-color: #e9ecef;
+            color: #495057;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        /* 5. 버튼 디자인 */
+        .btn {
+            background-color: #FF4757;
+            color: white;
+            border: none;
+            padding: 15px 0;
+            width: 100%;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 6px rgba(255, 71, 87, 0.3);
+        }
+
+        .btn:hover {
+            background-color: #ff6b81;
+            transform: translateY(-2px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn.secondary {
+            background-color: #2ed573;
+            box-shadow: 0 4px 6px rgba(46, 213, 115, 0.3);
+        }
+
+        .btn.reset {
+            background-color: #747d8c;
+            box-shadow: 0 4px 6px rgba(116, 125, 140, 0.3);
+        }
+
+        /* 결과 강조 효과 */
+        .highlight {
+            animation: pop 0.3s ease-in-out;
+            color: #FFD700;
+        }
+
+        @keyframes pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>런치Pick 🎲</h1>
+        <p class="subtitle">오늘 점심, 고민하지 말고 돌리세요!</p>
+
+        <div class="status-badge" id="status-text">대분야를 골라주세요</div>
+        
+        <div class="slot-machine">
+            <div class="slot-text" id="slot-display">READY</div>
+        </div>
+
+        <button class="btn" id="action-btn" onclick="startCategorySlot()">메뉴 추천받기</button>
+    </div>
+
+    <script>
+        // 1. 메뉴 데이터 세팅
+        const menuData = {
+            "한식": ["김치찌개", "된장찌개", "순두부찌개", "제육볶음", "불고기", "비빔밥", "돌솥비빔밥", "김밥", "떡볶이", "냉면", "비빔국수", "잔치국수", "칼국수", "설렁탕", "육개장", "부대찌개", "감자탕", "뚝배기불고기", "콩나물국밥", "삼계탕"],
+            "중식": ["짜장면", "짬뽕", "간짜장", "삼선짜장", "볶음밥", "짜장밥", "짬뽕밥", "잡채밥", "유산슬밥", "마파두부밥", "탕수육", "깐풍기", "라조기", "고추잡채", "팔보채", "울면", "기스면", "중화비빔밥", "새우볶음밥", "계란볶음밥"],
+            "양식": ["파스타", "크림파스타", "토마토파스타", "오일파스타", "함박스테이크", "돈까스", "오므라이스", "치킨샐러드", "리조또", "필라프", "샌드위치", "파니니", "햄버거", "로스트치킨", "포크커틀릿", "스테이크덮밥", "라자냐", "미트볼", "클럽샌드위치", "그릴드치킨"],
+            "일식": ["돈카츠", "규동", "가츠동", "오야코동", "사케동", "카레라이스", "우동", "냉우동", "소바", "자루소바", "라멘", "미소라멘", "탄탄멘", "텐동", "에비동", "사시미정식", "스시", "연어덮밥", "치킨난반", "함박스테이크(일식식)"],
+            "분식": ["떡볶이", "순대", "튀김", "김밥", "라볶이", "쫄면", "비빔쫄면", "잔치국수", "어묵국", "어묵", "국물떡볶이", "치즈떡볶이", "즉석떡볶이", "김치볶음밥", "참치김밥", "치즈김밥", "라면", "떡만두국", "만두", "군만두"]
+        };
+
+        const categories = Object.keys(menuData);
+        let currentCategory = "";
+        let isSpinning = false;
+        let intervalId = null;
+
+        // DOM 요소 가져오기
+        const slotDisplay = document.getElementById('slot-display');
+        const actionBtn = document.getElementById('action-btn');
+        const statusText = document.getElementById('status-text');
+
+        // 2. 슬롯머신 돌아가는 함수 (텍스트를 빠르게 변경)
+        function spinText(list, duration, callback) {
+            if (isSpinning) return;
+            isSpinning = true;
+            slotDisplay.classList.add('blur'); // 흐림 효과 추가
+            
+            let counter = 0;
+            
+            // 0.05초마다 텍스트 변경
+            intervalId = setInterval(() => {
+                const randomIndex = Math.floor(Math.random() * list.length);
+                slotDisplay.innerText = list[randomIndex];
+                counter++;
+            }, 50);
+
+            // duration(ms) 후에 멈춤
+            setTimeout(() => {
+                clearInterval(intervalId);
+                const finalChoice = list[Math.floor(Math.random() * list.length)];
+                slotDisplay.innerText = finalChoice;
+                slotDisplay.classList.remove('blur'); // 흐림 효과 제거
+                slotDisplay.classList.add('highlight'); // 결과 강조
+                setTimeout(() => slotDisplay.classList.remove('highlight'), 300); // 강조 효과 리셋
+                
+                isSpinning = false;
+                callback(finalChoice);
+            }, duration);
+        }
+
+        // 3. 단계 1: 대분야 고르기
+        function startCategorySlot() {
+            statusText.innerText = "오늘의 카테고리는...?";
+            actionBtn.disabled = true; // 도는 동안 버튼 비활성화
+            actionBtn.innerText = "추첨 중...";
+            actionBtn.style.backgroundColor = "#ccc";
+
+            spinText(categories, 2000, (result) => {
+                currentCategory = result;
+                statusText.innerText = `선택된 분야: ${currentCategory}`;
+                
+                // 다음 버튼으로 변경
+                actionBtn.disabled = false;
+                actionBtn.innerText = "세부 메뉴 고르기 >";
+                actionBtn.classList.add('secondary'); // 초록색 버튼으로 스타일 변경
+                actionBtn.onclick = startMenuSlot; // 클릭 함수 변경
+            });
+        }
+
+        // 4. 단계 2: 세부 메뉴 고르기
+        function startMenuSlot() {
+            const menuList = menuData[currentCategory];
+            statusText.innerText = `${currentCategory} 중에서 고르는 중...`;
+            
+            actionBtn.disabled = true;
+            actionBtn.innerText = "메뉴 결정 중...";
+            actionBtn.style.backgroundColor = "#ccc";
+
+            spinText(menuList, 2500, (result) => {
+                statusText.innerText = "오늘의 점심 메뉴!";
+                
+                // 다시하기 버튼으로 변경
+                actionBtn.disabled = false;
+                actionBtn.innerText = "처음부터 다시하기 ↺";
+                actionBtn.className = 'btn reset'; // 회색 버튼으로 변경
+                actionBtn.onclick = resetGame; // 리셋 함수 연결
+            });
+        }
+
+        // 5. 초기화 함수
+        function resetGame() {
+            currentCategory = "";
+            slotDisplay.innerText = "READY";
+            statusText.innerText = "대분야를 골라주세요";
+            
+            actionBtn.innerText = "메뉴 추천받기";
+            actionBtn.className = 'btn'; // 원래 붉은 버튼으로 복귀
+            actionBtn.onclick = startCategorySlot;
+        }
+
+    </script>
+</body>
+</html>
