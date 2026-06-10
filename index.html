@@ -1,512 +1,695 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>런치Pick</title>
-    <style>
-        /* 1. 기본 스타일 (Pretendard 폰트) */
-        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>서울 데이트 부루마불 · 기후동행카드 에디션</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EEF3F8;          /* 노선도 종이 느낌의 옅은 블루그레이 */
+  --ink:#1F2430;
+  --pink:#FF4D6D;        /* 데이트 핑크 */
+  --pink-deep:#E03654;
+  --center:#FFF0F3;
+  --cell:#FFFFFF;
+  --line:#D8E0E8;
+  --gold:#F4B400;
+  --radius:14px;
+  font-size:16px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:'Gowun Dodum','Apple SD Gothic Neo','Noto Sans KR',-apple-system,sans-serif;
+  display:flex;flex-direction:column;align-items:center;
+  min-height:100vh;
+}
+h1,h2,h3,.disp{font-family:'Jua','Apple SD Gothic Neo',sans-serif;font-weight:400}
+.app{width:100%;max-width:560px;padding:10px 10px 24px;display:flex;flex-direction:column;gap:10px}
 
-        body {
-            font-family: 'Pretendard', sans-serif;
-            background-color: #f0f2f5;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-        }
+/* ───── 헤더 ───── */
+header{display:flex;align-items:center;justify-content:space-between;padding:6px 4px}
+header h1{font-size:1.25rem;letter-spacing:-.02em}
+header h1 .heart{color:var(--pink)}
+.badge-card{
+  font-size:.68rem;background:#19B27A;color:#fff;border-radius:999px;
+  padding:4px 10px;font-weight:700;letter-spacing:.02em;white-space:nowrap;
+}
 
-        /* 메인 컨테이너 */
-        .container {
-            background: white;
-            width: 90%;
-            max-width: 420px;
-            padding: 30px 20px;
-            border-radius: 24px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            text-align: center;
-            position: relative; /* 설정 버튼 위치 잡기 위해 */
-        }
+/* ───── 보드 ───── */
+.board-wrap{position:relative;width:100%}
+.board{
+  display:grid;width:100%;aspect-ratio:1/1;
+  grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(8,1fr);
+  gap:3px;background:transparent;
+}
+.tile{
+  background:var(--cell);border:1px solid var(--line);border-radius:8px;
+  position:relative;overflow:hidden;display:flex;flex-direction:column;
+  font-size:clamp(7px,1.9vw,11px);line-height:1.15;cursor:pointer;
+  transition:transform .15s, box-shadow .15s;
+}
+.tile.flash{box-shadow:0 0 0 3px var(--pink);transform:scale(1.06);z-index:5}
+.tile .bar{height:22%;min-height:8px;width:100%;display:flex;align-items:center;justify-content:center;flex:none}
+.tile .bar .ln{
+  font-size:.85em;color:#fff;font-weight:700;letter-spacing:-.03em;
+  text-shadow:0 1px 1px rgba(0,0,0,.25);transform:scale(.92);white-space:nowrap;
+}
+.tile .nm{flex:1;display:flex;align-items:center;justify-content:center;text-align:center;padding:1px 2px;font-weight:700;letter-spacing:-.04em;word-break:keep-all}
+.tile .pr{text-align:center;color:#6B7686;font-size:.85em;padding-bottom:2px}
+.tile.corner{background:linear-gradient(160deg,#FFE3EA,#FFF6F8)}
+.tile.corner .nm{font-size:1.05em;color:var(--pink-deep)}
+.tile.keytile{background:linear-gradient(160deg,#FFF6DC,#FFFDF4)}
+.tile.keytile .nm{color:#B8860B}
+.tile .own{
+  position:absolute;top:2px;right:2px;width:1.5em;height:1.5em;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:.9em;color:#fff;font-weight:700;
+  box-shadow:0 1px 2px rgba(0,0,0,.3);
+}
+.tile .lv{position:absolute;top:2px;left:2px;display:flex;gap:1px}
+.tile .lv i{width:.55em;height:.55em;border-radius:2px;background:var(--gold);box-shadow:0 0 0 1px #fff}
+.tile .tk{position:absolute;bottom:1px;left:1px;right:1px;display:flex;justify-content:center;gap:1px;font-size:1.25em;pointer-events:none;filter:drop-shadow(0 1px 1px rgba(0,0,0,.25))}
 
-        /* 헤더 영역 */
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding: 0 10px;
-        }
+/* ───── 보드 중앙 ───── */
+.center{
+  grid-area:2/2/8/8;background:var(--center);border-radius:var(--radius);
+  border:2px dashed #FFC2CE;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:8px;padding:8px;text-align:center;z-index:2;
+}
+.center .title{font-size:clamp(14px,4.5vw,24px);color:var(--pink-deep)}
+.turn-chip{display:flex;align-items:center;gap:6px;background:#fff;border-radius:999px;padding:5px 14px;box-shadow:0 2px 8px rgba(224,54,84,.15);font-weight:700;font-size:clamp(11px,3.2vw,15px)}
+.turn-chip .tok{font-size:1.2em}
+.cashline{font-size:clamp(11px,3vw,14px);color:#6B7686}
+.cashline b{color:var(--ink)}
+.dice{display:flex;gap:10px}
+.die{
+  width:clamp(34px,11vw,56px);height:clamp(34px,11vw,56px);background:#fff;border-radius:12px;
+  box-shadow:0 3px 0 #E2C6CC, 0 4px 10px rgba(0,0,0,.08);
+  display:flex;align-items:center;justify-content:center;
+  font-size:clamp(20px,7vw,34px);font-family:'Jua';color:var(--ink);
+}
+.die.rolling{animation:shake .12s infinite}
+@keyframes shake{0%{transform:rotate(-8deg)}50%{transform:rotate(8deg)}100%{transform:rotate(-8deg)}}
+.btn{
+  font-family:'Jua';border:none;border-radius:999px;cursor:pointer;
+  padding:10px 22px;font-size:clamp(13px,3.8vw,17px);color:#fff;
+  background:linear-gradient(180deg,var(--pink),var(--pink-deep));
+  box-shadow:0 3px 0 #B7273F;transition:transform .1s;
+}
+.btn:active{transform:translateY(2px);box-shadow:0 1px 0 #B7273F}
+.btn:disabled{opacity:.45;box-shadow:none;cursor:default}
+.btn.ghost{background:#fff;color:var(--pink-deep);box-shadow:0 3px 0 #E5CDD2}
+.btn.small{padding:7px 14px;font-size:clamp(11px,3.2vw,14px)}
+.fund{font-size:clamp(10px,2.8vw,13px);color:#9A6C00;background:#FFF3CF;border-radius:999px;padding:3px 10px}
 
-        h1 {
-            color: #333;
-            font-size: 24px;
-            font-weight: 800;
-            margin: 0;
-        }
+/* ───── 플레이어 패널 ───── */
+.players{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px}
+.pcard{background:#fff;border-radius:12px;padding:8px 10px;border:2px solid transparent;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.pcard.active{border-color:var(--pink)}
+.pcard.dead{opacity:.4;filter:grayscale(1)}
+.pcard .top{display:flex;align-items:center;gap:6px;font-weight:700;font-size:.85rem}
+.pcard .money{font-family:'Jua';font-size:1.05rem;margin-top:2px}
+.pcard .props{font-size:.68rem;color:#6B7686;margin-top:2px;min-height:1em}
+.pcard .tag{font-size:.6rem;background:#FFE3EA;color:var(--pink-deep);border-radius:6px;padding:1px 5px;margin-left:auto}
 
-        /* 설정 버튼 (톱니바퀴) */
-        .settings-btn {
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            padding: 5px;
-            transition: transform 0.3s;
-        }
-        .settings-btn:hover { transform: rotate(90deg); }
+/* ───── 로그 ───── */
+.log{background:#fff;border-radius:12px;padding:10px 12px;height:120px;overflow-y:auto;font-size:.78rem;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.log p{margin-bottom:4px;color:#4A5260}
+.log p:first-child{color:var(--ink);font-weight:700}
 
-        /* 슬롯머신 창 */
-        .slot-machine {
-            background: #222;
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
-            border: 4px solid #FFD700;
-            height: 100px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
-        }
+/* ───── 모달 ───── */
+.overlay{
+  position:fixed;inset:0;background:rgba(31,36,48,.55);display:flex;align-items:center;justify-content:center;
+  z-index:50;padding:18px;backdrop-filter:blur(2px);
+}
+.overlay.hidden{display:none}
+.modal{
+  background:#fff;border-radius:20px;width:100%;max-width:380px;max-height:86vh;overflow-y:auto;
+  padding:20px 18px;display:flex;flex-direction:column;gap:12px;animation:pop .22s ease-out;
+}
+@keyframes pop{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
+.modal .mline{height:8px;border-radius:99px;margin:-6px -2px 0}
+.modal h2{font-size:1.25rem;letter-spacing:-.02em}
+.modal .sta{display:inline-flex;align-items:center;gap:6px;font-size:.75rem;color:#6B7686}
+.modal .sta .dot{width:14px;height:14px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:.55rem;font-weight:800}
+.modal .body{font-size:.9rem;line-height:1.55;color:#39404E}
+.mission-box{
+  background:linear-gradient(160deg,#FFF0F3,#FFF9FA);border:1.5px dashed #FFB3C2;border-radius:14px;
+  padding:12px;font-size:.88rem;line-height:1.5;
+}
+.mission-box .mt{font-family:'Jua';color:var(--pink-deep);font-size:.8rem;margin-bottom:4px}
+.price-row{display:flex;justify-content:space-between;font-size:.85rem;padding:4px 2px;border-bottom:1px dashed #EEE}
+.price-row b{font-family:'Jua'}
+.modal .btns{display:flex;gap:8px;flex-wrap:wrap}
+.modal .btns .btn{flex:1;min-width:100px}
+.goldcard{background:linear-gradient(160deg,#FFF3CF,#FFFBEE);border:2px solid var(--gold);border-radius:16px;padding:16px;text-align:center}
+.goldcard .gk{font-family:'Jua';color:#9A6C00;font-size:.8rem;letter-spacing:.15em;margin-bottom:6px}
+.goldcard .gt{font-size:1rem;line-height:1.5;font-weight:700}
+.picker{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;max-height:40vh;overflow-y:auto}
+.picker button{
+  border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 4px;font-size:.7rem;cursor:pointer;
+  font-family:inherit;word-break:keep-all;line-height:1.3;
+}
+.picker button:active{background:#FFE3EA}
+.picker button .pc{display:block;width:100%;height:5px;border-radius:99px;margin-bottom:4px}
 
-        .slot-text {
-            color: #fff;
-            font-size: 28px;
-            font-weight: bold;
-            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
-            white-space: nowrap;
-        }
-
-        .blur { filter: blur(3px); opacity: 0.8; }
-        .highlight { animation: pop 0.3s ease-in-out; color: #FFD700; }
-
-        @keyframes pop {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.2); }
-            100% { transform: scale(1); }
-        }
-
-        .status-text {
-            color: #666;
-            margin-bottom: 15px;
-            font-size: 14px;
-            font-weight: 500;
-            min-height: 20px;
-        }
-
-        /* 2. 버튼 스타일 (요청하신 컬러 반영) */
-        .btn {
-            border: none;
-            padding: 15px 0;
-            width: 100%;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.2s;
-            color: white;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-
-        .btn:active { transform: translateY(2px); box-shadow: none; }
-
-        /* Active 상태 (파란색) */
-        .btn-active {
-            background-color: #007AFF; /* iOS Blue 느낌 */
-        }
-        .btn-active:hover { background-color: #0062cc; }
-
-        /* Progress 상태 (회색) */
-        .btn-progress {
-            background-color: #8E8E93;
-            cursor: not-allowed;
-        }
-
-        /* Restart 상태 (노란색) */
-        .btn-restart {
-            background-color: #FFCC00;
-            color: #333; /* 노란 배경엔 검은 글씨가 가독성 좋음 */
-        }
-        .btn-restart:hover { background-color: #ffdb4d; }
-
-        /* 3. 히스토리 영역 */
-        .history-container {
-            margin-top: 30px;
-            background: #f8f9fa;
-            border-radius: 12px;
-            padding: 15px;
-            text-align: left;
-        }
-
-        .history-title {
-            font-size: 12px;
-            color: #888;
-            margin-bottom: 10px;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-
-        .history-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .history-item {
-            display: flex;
-            align-items: center;
-            padding: 8px 0;
-            border-bottom: 1px solid #eee;
-            font-size: 14px;
-            color: #333;
-        }
-        .history-item:last-child { border-bottom: none; }
-
-        .rank-badge {
-            background: #333;
-            color: white;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 10px;
-            margin-right: 10px;
-            font-weight: bold;
-        }
-
-        /* 4. 설정 모달 (옵션 선택) */
-        .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 100;
-        }
-
-        .modal-content {
-            background: white;
-            width: 85%;
-            max-width: 350px;
-            max-height: 70vh;
-            border-radius: 16px;
-            padding: 20px;
-            overflow-y: auto;
-            text-align: left;
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
-        }
-        
-        .modal-title { font-weight: bold; font-size: 18px; }
-        .close-btn { background:none; border:none; font-size: 24px; cursor: pointer; }
-
-        /* 아코디언 스타일 체크박스 그룹 */
-        .category-group { margin-bottom: 15px; }
-        .category-header {
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            margin-bottom: 8px;
-            background: #f1f3f5;
-            padding: 8px;
-            border-radius: 8px;
-        }
-        .category-header input { margin-right: 8px; transform: scale(1.2); }
-        
-        .menu-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 5px;
-            padding-left: 10px;
-        }
-        
-        .menu-item-check {
-            font-size: 13px;
-            display: flex;
-            align-items: center;
-            color: #555;
-        }
-        .menu-item-check input { margin-right: 5px; }
-
-        .save-btn {
-            background: #333;
-            color: white;
-            width: 100%;
-            padding: 12px;
-            border: none;
-            border-radius: 8px;
-            margin-top: 15px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-    </style>
+/* ───── 시작 화면 ───── */
+.setup{display:flex;flex-direction:column;gap:14px}
+.setup .hero{
+  background:linear-gradient(160deg,#FF6B8A,#E03654);color:#fff;border-radius:20px;padding:26px 20px;
+  text-align:center;position:relative;overflow:hidden;
+}
+.setup .hero h2{font-size:1.7rem;line-height:1.3;letter-spacing:-.02em}
+.setup .hero p{font-size:.82rem;opacity:.92;margin-top:8px;line-height:1.6}
+.setup .hero .stamps{position:absolute;top:-14px;right:-14px;font-size:4.5rem;opacity:.18;transform:rotate(15deg)}
+.setup label{font-size:.8rem;font-weight:700;color:#4A5260}
+.numsel{display:flex;gap:8px}
+.numsel button{
+  flex:1;padding:12px;border-radius:12px;border:2px solid var(--line);background:#fff;
+  font-family:'Jua';font-size:1.1rem;cursor:pointer;color:#6B7686;
+}
+.numsel button.sel{border-color:var(--pink);color:var(--pink-deep);background:#FFF0F3}
+.pinput{display:flex;align-items:center;gap:8px;background:#fff;border-radius:12px;padding:8px 10px;border:1px solid var(--line)}
+.pinput .emoji{font-size:1.4rem;cursor:pointer;background:none;border:none}
+.pinput input{flex:1;border:none;outline:none;font-size:1rem;font-family:inherit;background:transparent}
+.rules{background:#fff;border-radius:14px;padding:14px;font-size:.78rem;line-height:1.7;color:#4A5260}
+.rules b{color:var(--pink-deep)}
+.hiddenEl{display:none!important}
+.toast{
+  position:fixed;top:14px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;
+  padding:8px 18px;border-radius:999px;font-size:.8rem;z-index:99;opacity:0;transition:opacity .25s;pointer-events:none;
+  max-width:90vw;text-align:center;
+}
+.toast.show{opacity:1}
+@media (prefers-reduced-motion: reduce){
+  .die.rolling{animation:none}
+  .modal{animation:none}
+  .tile{transition:none}
+}
+</style>
 </head>
 <body>
+<div class="app">
+<header>
+  <h1>서울 데이트 부루마불 <span class="heart">♥</span></h1>
+  <span class="badge-card">기후동행카드 OK</span>
+</header>
 
-    <div class="container">
-        <header>
-            <h1>런치Pick v1.1</h1>
-            <button class="settings-btn" onclick="openSettings()">⚙️</button>
-        </header>
+<!-- 시작 화면 -->
+<section class="setup" id="setup">
+  <div class="hero">
+    <div class="stamps">🚇</div>
+    <h2>지하철 타고<br>서울 한 바퀴 데이트</h2>
+    <p>기후동행카드 한 장이면 전부 갈 수 있는<br>서울 데이트 명소 21곳을 사고, 꾸미고, 미션까지!</p>
+  </div>
+  <label>플레이어 수</label>
+  <div class="numsel" id="numsel">
+    <button data-n="2" class="sel">2명</button>
+    <button data-n="3">3명</button>
+    <button data-n="4">4명</button>
+  </div>
+  <label>플레이어 이름 · 말</label>
+  <div id="pinputs" style="display:flex;flex-direction:column;gap:8px"></div>
+  <button class="btn" id="startBtn" style="padding:14px">게임 시작 🎲</button>
+  <div class="rules">
+    <b>게임 방법</b><br>
+    · 주사위 2개를 굴려 이동해요. 더블이면 한 번 더!<br>
+    · 빈 장소에 도착하면 <b>구매</b>할 수 있고, 남의 장소면 <b>데이트 비용(통행료)</b>을 내요.<br>
+    · 내 장소에 다시 도착하면 <b>추억 업그레이드</b>(인증샷→단골도장→기념일코스)로 통행료가 올라가요.<br>
+    · 같은 노선 3곳을 모두 모으면 <b>노선 독점</b>! 통행료 2배.<br>
+    · 장소에 도착하면 <b>데이트 미션</b>이 등장 — 실제로 수행하면 보너스 +3만원 (커플 합의제 🤝)<br>
+    · 파산하지 않고 마지막까지 살아남으면 승리!
+  </div>
+</section>
 
-        <div class="status-text" id="status-text">오늘 점심 뭐 먹지?</div>
-        
-        <div class="slot-machine">
-            <div class="slot-text" id="slot-display">READY</div>
-        </div>
+<!-- 게임 화면 -->
+<section id="game" class="hiddenEl" style="display:flex;flex-direction:column;gap:10px">
+  <div class="board-wrap">
+    <div class="board" id="board"></div>
+  </div>
+  <div class="players" id="players"></div>
+  <div class="log" id="log"></div>
+</section>
+</div>
 
-        <button class="btn btn-active" id="action-btn" onclick="handleButtonClick()">메뉴 추천받기</button>
+<div class="overlay hidden" id="overlay"><div class="modal" id="modal"></div></div>
+<div class="toast" id="toast"></div>
 
-        <div class="history-container">
-            <div class="history-title">RECENT PICKS (TOP 3)</div>
-            <ul class="history-list" id="history-list">
-                <li class="history-item" style="color:#aaa; justify-content:center;">아직 기록이 없습니다.</li>
-            </ul>
-        </div>
-    </div>
+<script>
+/* ───────────── 데이터 ───────────── */
+const FMT = n => n.toLocaleString('ko-KR') + '만';
+const SALARY = 20, START_CASH = 200, MISSION_BONUS = 3;
+const LV_NAMES = ['','📸 인증샷','🏅 단골도장','🎂 기념일코스'];
+const LV_MULT = [1,3,6,10];
 
-    <div class="modal-overlay" id="settings-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <span class="modal-title">메뉴 필터 설정</span>
-                <button class="close-btn" onclick="closeSettings()">×</button>
-            </div>
-            <div id="settings-list">
-                </div>
-            <button class="save-btn" onclick="saveSettings()">저장하고 닫기</button>
-        </div>
-    </div>
+const TILES = [
+{type:'start',  name:'출발 · 서울역', icon:'🚉', desc:'지나갈 때마다 월급 +'+SALARY+'만'},
+{type:'site', name:'망원시장', line:'6', color:'#CD7C2F', station:'망원역', price:8,
+ mission:'길거리 간식 하나를 골라 정확히 반으로 나눠 먹기 ✂️'},
+{type:'key',  name:'황금열쇠', icon:'🔑'},
+{type:'site', name:'해방촌 야경길', line:'6', color:'#CD7C2F', station:'녹사평역', price:9,
+ mission:'야경을 배경으로 셀카 찍고 서로의 베스트컷 골라주기 🌃'},
+{type:'site', name:'이태원 거리', line:'6', color:'#CD7C2F', station:'이태원역', price:10,
+ mission:'둘 다 한 번도 안 먹어본 나라의 음식 하나 정하기 🌍'},
+{type:'site', name:'광장시장 먹자골목', line:'1', color:'#0052A4', station:'종로5가역', price:12,
+ mission:'마약김밥 vs 빈대떡, 가위바위보 진 사람이 사기 ✊✌️'},
+{type:'site', name:'익선동 한옥거리', line:'1', color:'#0052A4', station:'종로3가역', price:13,
+ mission:'한옥 카페에서 서로의 음료를 대신 골라주기 ☕'},
+{type:'jail', name:'집콕 데이트', icon:'🛋️', desc:'3턴 휴식 · 더블 또는 10만원으로 탈출'},
+{type:'site', name:'대학로 소극장', line:'1', color:'#0052A4', station:'혜화역', price:14,
+ mission:'같이 보고 싶은 연극·뮤지컬 한 편 정해서 메모하기 🎭'},
+{type:'site', name:'서촌 골목길', line:'3', color:'#EF7C1C', station:'경복궁역', price:16,
+ mission:'골목에서 가장 예쁜 대문을 찾아 그 앞에서 사진 찍기 🚪'},
+{type:'key',  name:'황금열쇠', icon:'🔑'},
+{type:'site', name:'북촌 한옥마을', line:'3', color:'#EF7C1C', station:'안국역', price:17,
+ mission:'다음에 입을 한복 커플 컨셉(색·스타일) 정하기 👘'},
+{type:'site', name:'경복궁 야간개장', line:'3', color:'#EF7C1C', station:'경복궁역', price:18,
+ mission:'서로에게 어울리는 조선시대 직업 지어주기 👑'},
+{type:'site', name:'명동 거리', line:'4', color:'#00A5DE', station:'명동역', price:20,
+ mission:'길거리 간식 하나씩 서로 몰래 사서 교환하기 🥟'},
+{type:'fund', name:'데이트 축제', icon:'🎪', desc:'도착하면 쌓인 데이트 기금 전액 수령!'},
+{type:'site', name:'DDP LED 장미정원', line:'4', color:'#00A5DE', station:'동대문역사문화공원역', price:21,
+ mission:'장미 불빛 사이에서 똑같은 포즈로 각자 사진 찍기 🌹'},
+{type:'site', name:'남산 N서울타워', line:'4', color:'#00A5DE', station:'명동역+버스', price:22,
+ mission:'사랑의 자물쇠에 적을 한 문장 함께 정하기 🔒'},
+{type:'key',  name:'황금열쇠', icon:'🔑'},
+{type:'site', name:'여의도 한강공원', line:'5', color:'#996CAC', station:'여의나루역', price:24,
+ mission:'편의점 라면 하나 끓여서 사이좋게 나눠 먹기 🍜'},
+{type:'site', name:'더현대 서울', line:'5', color:'#996CAC', station:'여의도역', price:25,
+ mission:'서로에게 선물하고 싶은 아이템 하나씩 골라 보여주기 🎁'},
+{type:'site', name:'노들섬 선셋', line:'5', color:'#996CAC', station:'노들역', price:26,
+ mission:'노을 보며 같이 들을 노래 한 곡 정해서 재생하기 🎧'},
+{type:'travel', name:'한강 유람선', icon:'⛴️', desc:'원하는 칸으로 항해! 도착 칸 즉시 진행'},
+{type:'site', name:'서울숲', line:'2', color:'#00A84D', station:'뚝섬역', price:28,
+ mission:'은행나무길(또는 메인 산책로)에서 점프샷 성공시키기 🦌'},
+{type:'site', name:'성수 카페거리', line:'2', color:'#00A84D', station:'성수역', price:30,
+ mission:'지금 핫한 팝업스토어 하나 검색해서 다음 데이트로 찜하기 📌'},
+{type:'site', name:'홍대 걷고싶은거리', line:'2', color:'#00A84D', station:'홍대입구역', price:32,
+ mission:'인생네컷 찍기! 마지막 컷은 무조건 웃긴 표정 📷'},
+{type:'site', name:'석촌호수', line:'8', color:'#E6186C', station:'잠실역', price:35,
+ mission:'호수 한 바퀴, 손 절대 놓지 않고 걷기 🤝'},
+{type:'site', name:'별마당 도서관', line:'8', color:'#E6186C', station:'봉은사역', price:38,
+ mission:'서로에게 추천하고 싶은 책 한 권씩 골라 사진 찍기 📚'},
+{type:'site', name:'롯데월드', line:'8', color:'#E6186C', station:'잠실역', price:40,
+ mission:'둘 중 더 무서운 놀이기구를 고른 뒤 같이 타기로 약속 🎢'},
+];
 
-    <script>
-        // === 데이터 및 상태 관리 ===
-        const rawData = {
-            "한식": ["김치찌개", "된장찌개", "순두부찌개", "제육볶음", "불고기", "비빔밥", "돌솥비빔밥", "김밥", "떡볶이", "냉면", "비빔국수", "잔치국수", "칼국수", "설렁탕", "육개장", "부대찌개", "감자탕", "뚝배기불고기", "콩나물국밥", "삼계탕"],
-            "중식": ["짜장면", "짬뽕", "간짜장", "삼선짜장", "볶음밥", "짜장밥", "짬뽕밥", "잡채밥", "유산슬밥", "마파두부밥", "탕수육", "깐풍기", "라조기", "고추잡채", "팔보채", "울면", "기스면", "중화비빔밥", "새우볶음밥", "계란볶음밥"],
-            "양식": ["파스타", "크림파스타", "토마토파스타", "오일파스타", "함박스테이크", "돈까스", "오므라이스", "치킨샐러드", "리조또", "필라프", "샌드위치", "파니니", "햄버거", "로스트치킨", "포크커틀릿", "스테이크덮밥", "라자냐", "미트볼", "클럽샌드위치", "그릴드치킨"],
-            "일식": ["돈카츠", "규동", "가츠동", "오야코동", "사케동", "카레라이스", "우동", "냉우동", "소바", "자루소바", "라멘", "미소라멘", "탄탄멘", "텐동", "에비동", "사시미정식", "스시", "연어덮밥", "치킨난반", "함박스테이크(일식식)"],
-            "분식": ["떡볶이", "순대", "튀김", "김밥", "라볶이", "쫄면", "비빔쫄면", "잔치국수", "어묵국", "어묵", "국물떡볶이", "치즈떡볶이", "즉석떡볶이", "김치볶음밥", "참치김밥", "치즈김밥", "라면", "떡만두국", "만두", "군만두"]
-        };
+const GOLD_KEYS = [
+{t:'기념일 깜짝 이벤트 💐 모든 플레이어에게 축하금 5만원씩 받기', f:p=>collectFromAll(p,5)},
+{t:'데이트에 지각... 😅 사과의 의미로 데이트 기금에 8만원 기부', f:p=>payToFund(p,8)},
+{t:'따릉이 라이딩 🚲 출발 칸으로 이동하고 월급 받기', move:true, f:p=>moveTo(p,0,true)},
+{t:'갑자기 비 와서 집콕 데이트 ☔ 집콕 칸으로 이동 (휴식 시작)', move:true, f:p=>{sendJail(p);endTurn();}},
+{t:'한강 유람선 티켓 당첨 ⛴️ 유람선 칸으로 이동!', move:true, f:p=>moveTo(p,21,true)},
+{t:'커플 통장 개설 축하금 🏦 +15만원', f:p=>gain(p,15)},
+{t:'사진 인화 + 폴라로이드 필름 값 📸 -4만원 (기금으로)', f:p=>payToFund(p,4)},
+{t:'집콕 탈출권 🎟️ 보관했다가 집콕 데이트에서 사용 가능', f:p=>{p.escapeCard++;log(p.name+'님이 집콕 탈출권을 얻었어요');}},
+{t:'알바비 들어옴 💸 +12만원', f:p=>gain(p,12)},
+{t:'깜빡하고 기후동행카드 미충전 😱 충전비 6만원 기금 납부', f:p=>payToFund(p,6)},
+{t:'커플 SNS 떡상 📈 협찬금 +10만원', f:p=>gain(p,10)},
+{t:'뒤로 세 칸! 지갑을 두고 왔다 🔙', move:true, f:p=>moveTo(p,(p.pos+25)%28,false)},
+{t:'벚꽃 시즌 한정 이벤트 🌸 가장 가까운 5호선 명소(여의도 한강공원)로 이동', move:true, f:p=>moveTo(p,18,true)},
+{t:'서로 칭찬 한마디씩 주고받기 💞 훈훈해서 +5만원', f:p=>gain(p,5)},
+{t:'데이트 비용 정산의 날 🧾 보유한 장소 1곳당 2만원 기금 납부', f:p=>payToFund(p, p.props.length*2)},
+{t:'경품 이벤트 당첨 🎉 +20만원', f:p=>gain(p,20)},
+];
 
-        // 현재 활성화된(체크된) 메뉴 데이터
-        let activeData = JSON.parse(JSON.stringify(rawData)); 
-        
-        // 상태 변수
-        let step = 0; // 0: 시작전, 1: 대분류완료, 2: 소분류완료(끝)
-        let currentCategory = "";
-        let history = []; // 히스토리 저장소
+const EMOJIS = ['💕','🌹','🧸','🍰','🐻','🦊','🐰','⭐'];
+/* ───────────── 상태 ───────────── */
+let players = [], cur = 0, fund = 0, keyIdx = 0, keyDeck = [];
+let rolling = false, doubles = 0;
 
-        // DOM 요소
-        const slotDisplay = document.getElementById('slot-display');
-        const actionBtn = document.getElementById('action-btn');
-        const statusText = document.getElementById('status-text');
-        const historyList = document.getElementById('history-list');
+/* ───────────── 유틸 ───────────── */
+const $ = s => document.querySelector(s);
+const el = (t,c,h)=>{const e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e;};
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function log(msg){const p=el('p',null,msg);$('#log').prepend(p);while($('#log').children.length>40)$('#log').lastChild.remove();}
+function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1800);}
+function posToGrid(i){
+  if(i<=7)  return {r:8,c:8-i};
+  if(i<=13) return {r:7-(i-8),c:1};
+  if(i<=21) return {r:1,c:i-13};
+  return {r:i-20,c:8};
+}
 
-        // === 1. 설정(필터) 관련 로직 ===
-        
-        // 설정창 열 때 체크박스 UI 렌더링
-        function openSettings() {
-            const container = document.getElementById('settings-list');
-            container.innerHTML = ''; // 초기화
+/* ───────────── 시작 화면 ───────────── */
+let numPlayers = 2;
+function renderInputs(){
+  const box = $('#pinputs'); box.innerHTML='';
+  for(let i=0;i<numPlayers;i++){
+    const row = el('div','pinput');
+    const em = el('button','emoji',EMOJIS[i]); em.dataset.idx=i; em.type='button';
+    em.onclick=()=>{const cu=EMOJIS.indexOf(em.textContent);em.textContent=EMOJIS[(cu+1)%EMOJIS.length];};
+    const inp = el('input'); inp.placeholder='플레이어 '+(i+1)+' 이름'; inp.maxLength=8; inp.value='';
+    row.append(em,inp); box.append(row);
+  }
+}
+$('#numsel').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b)return;
+  numPlayers=+b.dataset.n;
+  document.querySelectorAll('#numsel button').forEach(x=>x.classList.toggle('sel',x===b));
+  renderInputs();
+});
+renderInputs();
 
-            for (const [cat, menus] of Object.entries(rawData)) {
-                // 대분류 체크박스 상태 확인 (하나라도 있으면 켜진 걸로 간주하거나, 데이터 기반으로 체크)
-                const isCatActive = activeData[cat] && activeData[cat].length > 0;
+$('#startBtn').onclick=()=>{
+  players=[...document.querySelectorAll('#pinputs .pinput')].map((row,i)=>({
+    id:i, name:row.querySelector('input').value.trim()||('플레이어'+(i+1)),
+    token:row.querySelector('.emoji').textContent,
+    cash:START_CASH, pos:0, props:[], jail:0, escapeCard:0, travel:false, dead:false,
+  }));
+  keyDeck = shuffle([...GOLD_KEYS.keys()]); keyIdx=0; fund=0; cur=0; doubles=0;
+  $('#setup').classList.add('hiddenEl'); $('#game').classList.remove('hiddenEl');
+  buildBoard(); renderAll();
+  log('🎮 게임 시작! '+players.map(p=>p.token+p.name).join(', ')+' — 시작 자금 '+FMT(START_CASH)+'원');
+};
 
-                let html = `
-                <div class="category-group">
-                    <div class="category-header">
-                        <label>
-                            <input type="checkbox" class="cat-chk" data-cat="${cat}" ${isCatActive ? 'checked' : ''} onchange="toggleCategory(this, '${cat}')">
-                            ${cat}
-                        </label>
-                    </div>
-                    <div class="menu-grid" id="grid-${cat}">
-                `;
+/* ───────────── 보드 렌더 ───────────── */
+function buildBoard(){
+  const b=$('#board'); b.innerHTML='';
+  TILES.forEach((t,i)=>{
+    const g=posToGrid(i);
+    const d=el('div','tile'+(t.type==='site'?'':t.type==='key'?' keytile':' corner'));
+    d.style.gridRow=g.r; d.style.gridColumn=g.c; d.dataset.i=i;
+    if(t.type==='site'){
+      d.innerHTML=`<div class="bar" style="background:${t.color}"><span class="ln">${t.line}호선</span></div>
+        <div class="nm">${t.name}</div><div class="pr">${t.price}만</div>
+        <div class="lv"></div><div class="tk"></div>`;
+    }else{
+      d.innerHTML=`<div class="nm">${t.icon}<br>${t.name}</div><div class="tk"></div>`;
+    }
+    d.onclick=()=>showTileInfo(i);
+    b.append(d);
+  });
+  const c=el('div','center');
+  c.innerHTML=`<div class="title disp">서울 데이트 부루마불</div>
+    <div class="turn-chip" id="turnChip"></div>
+    <div class="cashline" id="cashLine"></div>
+    <div class="dice"><div class="die" id="d1">🎲</div><div class="die" id="d2">🎲</div></div>
+    <button class="btn" id="rollBtn">주사위 굴리기</button>
+    <div class="fund" id="fundLine"></div>`;
+  b.append(c);
+  $('#rollBtn').onclick=onRoll;
+}
+function renderAll(){
+  // 타일 소유/레벨/토큰
+  document.querySelectorAll('.tile').forEach(d=>{
+    const i=+d.dataset.i, t=TILES[i];
+    const tk=d.querySelector('.tk');
+    tk.textContent=players.filter(p=>!p.dead&&p.pos===i).map(p=>p.token).join('');
+    if(t.type!=='site')return;
+    let own=d.querySelector('.own');
+    if(t.owner!=null && !players[t.owner].dead){
+      if(!own){own=el('div','own');d.append(own);}
+      own.textContent=players[t.owner].token;
+      own.style.background='#1F2430';
+    }else if(own)own.remove();
+    d.querySelector('.lv').innerHTML='<i></i>'.repeat(t.level||0);
+  });
+  // 플레이어 카드
+  const box=$('#players'); box.innerHTML='';
+  players.forEach((p,i)=>{
+    const c=el('div','pcard'+(i===cur?' active':'')+(p.dead?' dead':''));
+    c.innerHTML=`<div class="top"><span>${p.token}</span><span>${p.name}</span>
+      ${i===cur&&!p.dead?'<span class="tag">내 차례</span>':''}${p.dead?'<span class="tag">파산</span>':''}</div>
+      <div class="money">${FMT(p.cash)}원</div>
+      <div class="props">${p.props.length?'🏠 '+p.props.length+'곳'+(p.escapeCard?' · 🎟️'+p.escapeCard:''):(p.escapeCard?'🎟️ 탈출권 '+p.escapeCard:'장소 없음')}</div>`;
+    box.append(c);
+  });
+  const P=players[cur];
+  $('#turnChip').innerHTML=`<span class="tok">${P.token}</span>${P.name}의 차례${P.jail>0?' · 🛋️집콕 중':''}`;
+  $('#cashLine').innerHTML=`보유 현금 <b>${FMT(P.cash)}원</b>`;
+  $('#fundLine').textContent='🎪 데이트 기금: '+FMT(fund)+'원';
+}
 
-                menus.forEach(menu => {
-                    // 현재 activeData에 이 메뉴가 있는지 확인
-                    const isMenuActive = activeData[cat] && activeData[cat].includes(menu);
-                    html += `
-                        <label class="menu-item-check">
-                            <input type="checkbox" class="menu-chk" data-cat="${cat}" value="${menu}" ${isMenuActive ? 'checked' : ''}>
-                            ${menu}
-                        </label>
-                    `;
-                });
+/* ───────────── 모달 ───────────── */
+function openModal(html, buttons){
+  const m=$('#modal'); m.innerHTML=html;
+  const bx=el('div','btns');
+  buttons.forEach(b=>{
+    const btn=el('button','btn'+(b.ghost?' ghost':''),b.label);
+    btn.onclick=()=>{closeModal(); b.fn&&b.fn();};
+    bx.append(btn);
+  });
+  m.append(bx);
+  $('#overlay').classList.remove('hidden');
+}
+function closeModal(){$('#overlay').classList.add('hidden');}
+function siteHeader(t){
+  return `<div class="mline" style="background:${t.color}"></div>
+    <h2>${t.name}</h2>
+    <div class="sta"><span class="dot" style="background:${t.color}">${t.line}</span>${t.line}호선 ${t.station} · 기후동행카드 OK 🚇</div>`;
+}
+function showTileInfo(i){
+  if(rolling)return;
+  const t=TILES[i];
+  if(t.type!=='site'){
+    openModal(`<h2>${t.icon} ${t.name}</h2><div class="body">${t.desc||'특수 칸이에요.'}</div>`,[{label:'닫기',ghost:true}]);
+    return;
+  }
+  const ownerTxt=t.owner!=null?players[t.owner].token+' '+players[t.owner].name+' 소유'+(t.level?' · '+LV_NAMES[t.level]:''):'아직 주인이 없어요';
+  openModal(`${siteHeader(t)}
+    <div class="price-row"><span>가격</span><b>${FMT(t.price)}원</b></div>
+    <div class="price-row"><span>기본 데이트 비용</span><b>${FMT(baseRent(t))}원</b></div>
+    <div class="price-row"><span>현재 상태</span><b style="font-size:.8rem">${ownerTxt}</b></div>
+    <div class="mission-box"><div class="mt">💌 데이트 미션</div>${t.mission}</div>`,
+    [{label:'닫기',ghost:true}]);
+}
 
-                html += `</div></div>`;
-                container.innerHTML += html;
-            }
+/* ───────────── 주사위 & 이동 ───────────── */
+function onRoll(){
+  if(rolling)return;
+  const P=players[cur];
+  if(P.travel){ P.travel=false; showTravelPicker(P); return; }
+  if(P.jail>0){ showJailOptions(P); return; }
+  rollDice(P);
+}
+function rollDice(P, jailTry=false){
+  rolling=true; $('#rollBtn').disabled=true;
+  const d1=$('#d1'), d2=$('#d2');
+  d1.classList.add('rolling'); d2.classList.add('rolling');
+  let n=0; const iv=setInterval(()=>{
+    d1.textContent=1+Math.floor(Math.random()*6);
+    d2.textContent=1+Math.floor(Math.random()*6);
+    if(++n>9){
+      clearInterval(iv);
+      d1.classList.remove('rolling'); d2.classList.remove('rolling');
+      const a=1+Math.floor(Math.random()*6), b=1+Math.floor(Math.random()*6);
+      d1.textContent=a; d2.textContent=b;
+      const isD=a===b;
+      if(jailTry){
+        if(isD){ P.jail=0; log(P.token+' 더블! 집콕 탈출 성공 🎉'); setTimeout(()=>stepMove(P,a+b,false),500); }
+        else{ P.jail--; log(P.token+' 탈출 실패... 남은 휴식 '+P.jail+'턴'); setTimeout(endTurn,700); }
+        return;
+      }
+      if(isD){ doubles++; log(P.token+' 더블! ('+a+','+b+')'); } else doubles=0;
+      if(doubles>=3){ doubles=0; log(P.token+' 더블 3연속! 들떠서 집에 가버렸다… 집콕 데이트 🛋️'); setTimeout(()=>{sendJail(P); endTurnAfterResolve(true);},600); return; }
+      setTimeout(()=>stepMove(P,a+b,isD),400);
+    }
+  },70);
+}
+function stepMove(P,steps,extraTurn){
+  let moved=0;
+  const iv=setInterval(()=>{
+    P.pos=(P.pos+1)%28;
+    if(P.pos===0){ gain(P,SALARY,true); toast('🚉 출발 통과! 월급 +'+FMT(SALARY)+'원'); }
+    renderAll(); flash(P.pos);
+    if(++moved>=steps){ clearInterval(iv); setTimeout(()=>resolveTile(P,extraTurn),350); }
+  },200);
+}
+function flash(i){
+  const d=document.querySelector(`.tile[data-i="${i}"]`); if(!d)return;
+  d.classList.add('flash'); setTimeout(()=>d.classList.remove('flash'),350);
+}
+function moveTo(P,dest,salaryIfPass){
+  if(salaryIfPass && dest<=P.pos && dest!==P.pos){ gain(P,SALARY,true); toast('🚉 출발 경유! 월급 +'+FMT(SALARY)+'원'); }
+  P.pos=dest; renderAll(); flash(dest);
+  setTimeout(()=>resolveTile(P,false,true),400);
+}
 
-            document.getElementById('settings-modal').style.display = 'flex';
-        }
+/* ───────────── 칸 처리 ───────────── */
+function resolveTile(P,extraTurn,fromCard=false){
+  const t=TILES[P.pos];
+  const done=()=>endTurnAfterResolve(extraTurn);
+  if(t.type==='start'){ log(P.token+' 출발 칸에 도착! 잠시 숨 고르기'); return done(); }
+  if(t.type==='jail'){
+    if(fromCard){ return done(); }
+    log(P.token+' 집콕 칸 — 놀러만 온 거라 괜찮아요 😌'); return done();
+  }
+  if(t.type==='fund'){
+    if(fund>0){ gain(P,fund); log('🎪 '+P.name+'님이 데이트 기금 '+FMT(fund)+'원을 수령!'); toast('🎉 데이트 기금 '+FMT(fund)+'원 획득!'); fund=0; }
+    else log('🎪 데이트 축제 — 아직 기금이 비어있어요');
+    renderAll(); return done();
+  }
+  if(t.type==='travel'){
+    log('⛴️ '+P.name+'님이 한강 유람선 탑승!');
+    openModal(`<h2>⛴️ 한강 유람선</h2><div class="body">원하는 칸으로 항해할 수 있어요. 지금 바로 갈까요, 다음 턴에 갈까요?</div>`,
+      [{label:'지금 이동',fn:()=>showTravelPicker(P,extraTurn)},
+       {label:'다음 턴에',ghost:true,fn:()=>{P.travel=true;done();}}]);
+    return;
+  }
+  if(t.type==='key'){
+    const card=GOLD_KEYS[keyDeck[keyIdx]]; keyIdx=(keyIdx+1)%keyDeck.length;
+    openModal(`<div class="goldcard"><div class="gk">— 황 금 열 쇠 —</div><div class="gt">${card.t}</div></div>`,
+      [{label:'확인',fn:()=>{ card.f(P); renderAll(); if(!card.move) done(); }}]);
+    return;
+  }
+  // site
+  if(t.owner==null) return offerBuy(P,t,done);
+  if(t.owner===P.id) return offerUpgrade(P,t,done);
+  return payRent(P,t,done);
+}
+function endTurnAfterResolve(extraTurn){
+  renderAll();
+  if(checkWin())return;
+  if(extraTurn && !players[cur].dead && players[cur].jail===0){
+    rolling=false; $('#rollBtn').disabled=false;
+    $('#rollBtn').textContent = players[cur].travel ? '⛴️ 유람선 이동' : '주사위 굴리기';
+    toast('🎲 더블! 한 번 더 굴리세요'); return;
+  }
+  endTurn();
+}
+function endTurn(){
+  doubles=0;
+  do{ cur=(cur+1)%players.length; }while(players[cur].dead);
+  rolling=false; $('#rollBtn').disabled=false;
+  const P=players[cur];
+  $('#rollBtn').textContent = P.travel ? '⛴️ 유람선 이동' : (P.jail>0 ? '🛋️ 집콕 옵션' : '주사위 굴리기');
+  renderAll();
+}
 
-        // 대분류 체크박스 토글 시 하위 메뉴 전체 선택/해제
-        function toggleCategory(checkbox, catName) {
-            const grid = document.getElementById(`grid-${catName}`);
-            const inputs = grid.querySelectorAll('input[type="checkbox"]');
-            inputs.forEach(input => input.checked = checkbox.checked);
-        }
+/* ───────────── 구매/업그레이드/통행료 ───────────── */
+function baseRent(t){ return Math.max(2,Math.ceil(t.price*0.3)); }
+function rentOf(t){
+  const mono = TILES.filter(x=>x.type==='site'&&x.color===t.color).every(x=>x.owner===t.owner);
+  const r = baseRent(t)*LV_MULT[t.level||0];
+  return (t.level||0)===0 && mono ? r*2 : r;
+}
+function offerBuy(P,t,done){
+  const afford=P.cash>=t.price;
+  openModal(`${siteHeader(t)}
+    <div class="price-row"><span>구매 가격</span><b>${FMT(t.price)}원</b></div>
+    <div class="price-row"><span>데이트 비용(통행료)</span><b>${FMT(baseRent(t))}원~</b></div>
+    <div class="body">${afford?'이 데이트 명소를 우리 코스로 만들까요?':'잔액이 부족해요 😢'}</div>`,
+    [{label:'구매 '+FMT(t.price),fn:()=>{ if(!afford){toast('잔액 부족!');showMission(P,t,done);return;}
+        P.cash-=t.price; t.owner=P.id; t.level=0; P.props.push(TILES.indexOf(t));
+        log(P.token+' '+t.name+' 구매! (-'+FMT(t.price)+'원)');
+        const mono=TILES.filter(x=>x.type==='site'&&x.color===t.color).every(x=>x.owner===P.id);
+        if(mono)toast('🎊 '+t.line+'호선 독점! 통행료 2배');
+        renderAll(); showMission(P,t,done); }},
+     {label:'패스',ghost:true,fn:()=>showMission(P,t,done)}]);
+}
+function offerUpgrade(P,t,done){
+  if((t.level||0)>=3){ log(P.token+' 내 명소 '+t.name+'에서 휴식 (최고 단계)'); return showMission(P,t,done); }
+  const cost=Math.ceil(t.price*0.6);
+  openModal(`${siteHeader(t)}
+    <div class="body">내 데이트 명소예요! <b>${LV_NAMES[(t.level||0)+1]}</b> 단계로 추억을 업그레이드할까요?</div>
+    <div class="price-row"><span>업그레이드 비용</span><b>${FMT(cost)}원</b></div>
+    <div class="price-row"><span>통행료 변화</span><b>${FMT(rentOf(t))} → ${FMT(baseRent(t)*LV_MULT[(t.level||0)+1])}원</b></div>`,
+    [{label:'업그레이드',fn:()=>{ if(P.cash<cost){toast('잔액 부족!');return showMission(P,t,done);}
+        P.cash-=cost; t.level=(t.level||0)+1;
+        log(P.token+' '+t.name+' '+LV_NAMES[t.level]+' 완성! (-'+FMT(cost)+'원)');
+        renderAll(); showMission(P,t,done); }},
+     {label:'괜찮아요',ghost:true,fn:()=>showMission(P,t,done)}]);
+}
+function payRent(P,t,done){
+  const owner=players[t.owner], rent=rentOf(t);
+  openModal(`${siteHeader(t)}
+    <div class="body">${owner.token} <b>${owner.name}</b>님의 명소예요!${t.level?' ('+LV_NAMES[t.level]+')':''}<br>데이트 비용을 정산해야 해요.</div>
+    <div class="price-row"><span>데이트 비용</span><b style="color:var(--pink-deep)">${FMT(rent)}원</b></div>`,
+    [{label:FMT(rent)+' 지불',fn:()=>{ pay(P,rent,owner); renderAll();
+        if(P.dead)return done(); showMission(P,t,done); }}]);
+}
 
-        function closeSettings() {
-            document.getElementById('settings-modal').style.display = 'none';
-        }
+/* ───────────── 미션 ───────────── */
+function showMission(P,t,done){
+  openModal(`<div class="mline" style="background:${t.color}"></div>
+    <h2>💌 데이트 미션</h2>
+    <div class="sta"><span class="dot" style="background:${t.color}">${t.line}</span>${t.name}</div>
+    <div class="mission-box"><div class="mt">MISSION</div>${t.mission}</div>
+    <div class="body" style="font-size:.78rem;color:#8A93A3">실제로(또는 약속으로) 수행했다면 상대의 인정을 받고 보너스를 받아요. 커플 합의제 🤝</div>`,
+    [{label:'미션 성공 +'+FMT(MISSION_BONUS),fn:()=>{gain(P,MISSION_BONUS);log(P.token+' 미션 성공! +'+FMT(MISSION_BONUS)+'원 💕');renderAll();done();}},
+     {label:'다음에 할게요',ghost:true,fn:done}]);
+}
 
-        // 설정 저장
-        function saveSettings() {
-            const newActiveData = {};
-            const catGroups = document.querySelectorAll('.category-group');
+/* ───────────── 집콕(무인도) ───────────── */
+function sendJail(P){ P.pos=7; P.jail=3; renderAll(); log(P.token+' 집콕 데이트 시작 (최대 3턴)'); }
+function showJailOptions(P){
+  const btns=[{label:'🎲 더블 도전',fn:()=>rollDice(P,true)}];
+  if(P.cash>=10) btns.push({label:'10만 내고 탈출',fn:()=>{pay(P,10,null,true);P.jail=0;log(P.token+' 10만원 내고 집콕 탈출');renderAll();rollDice(P);}});
+  if(P.escapeCard>0) btns.push({label:'🎟️ 탈출권 사용',fn:()=>{P.escapeCard--;P.jail=0;log(P.token+' 탈출권으로 집콕 탈출!');renderAll();rollDice(P);}});
+  btns.push({label:'그냥 쉬기',ghost:true,fn:()=>{P.jail--;log(P.token+' 집에서 뒹굴뒹굴… 남은 휴식 '+P.jail+'턴');endTurn();}});
+  openModal(`<h2>🛋️ 집콕 데이트 중</h2><div class="body">남은 휴식: <b>${P.jail}턴</b><br>더블이 나오면 바로 탈출해서 이동해요!</div>`,btns);
+}
 
-            catGroups.forEach(group => {
-                const catName = group.querySelector('.cat-chk').dataset.cat;
-                const menuChks = group.querySelectorAll('.menu-chk:checked');
-                
-                if (menuChks.length > 0) {
-                    newActiveData[catName] = [];
-                    menuChks.forEach(chk => {
-                        newActiveData[catName].push(chk.value);
-                    });
-                }
-            });
+/* ───────────── 유람선 ───────────── */
+function showTravelPicker(P,extraTurn=false){
+  const m=$('#modal'); m.innerHTML=`<h2>⛴️ 어디로 갈까요?</h2><div class="body" style="font-size:.8rem">출발 칸을 지나치면 월급도 받아요!</div>`;
+  const grid=el('div','picker');
+  TILES.forEach((t,i)=>{
+    if(i===21)return;
+    const b=el('button',null,`<span class="pc" style="background:${t.color||'#C9D2DC'}"></span>${t.type==='site'?t.name:(t.icon+' '+t.name)}`);
+    b.onclick=()=>{ closeModal(); log(P.token+' 유람선으로 '+t.name+' 이동!');
+      if(i<=P.pos) gain(P,SALARY,true), toast('🚉 출발 경유! 월급 +'+FMT(SALARY)+'원');
+      P.pos=i; renderAll(); flash(i);
+      setTimeout(()=>resolveTile(P,extraTurn,false),400); };
+    grid.append(b);
+  });
+  m.append(grid);
+  const bx=el('div','btns'); const cancel=el('button','btn ghost','그냥 주사위 굴리기');
+  cancel.onclick=()=>{closeModal();rollDice(P);};
+  bx.append(cancel); m.append(bx);
+  $('#overlay').classList.remove('hidden');
+}
 
-            // 유효성 검사: 아무것도 선택 안 했으면 경고
-            if (Object.keys(newActiveData).length === 0) {
-                alert("최소한 하나의 메뉴는 선택해야 합니다!");
-                return;
-            }
-
-            activeData = newActiveData;
-            closeSettings();
-            resetGame(); // 설정 바뀌면 게임 리셋
-            alert("설정이 저장되었습니다!");
-        }
-
-        // === 2. 슬롯머신 로직 ===
-
-        function handleButtonClick() {
-            if (step === 0) {
-                startCategorySlot();
-            } else if (step === 1) {
-                startMenuSlot();
-            } else if (step === 2) {
-                resetGame();
-            }
-        }
-
-        function setButtonState(state, text) {
-            actionBtn.className = 'btn'; // 클래스 초기화
-            actionBtn.innerText = text;
-            actionBtn.disabled = false;
-
-            if (state === 'active') {
-                actionBtn.classList.add('btn-active'); // 파란색
-            } else if (state === 'progress') {
-                actionBtn.classList.add('btn-progress'); // 회색
-                actionBtn.disabled = true;
-            } else if (state === 'restart') {
-                actionBtn.classList.add('btn-restart'); // 노란색
-            }
-        }
-
-        function spinText(list, duration, callback) {
-            setButtonState('progress', '돌아가는 중...');
-            slotDisplay.classList.add('blur');
-            
-            let interval = setInterval(() => {
-                slotDisplay.innerText = list[Math.floor(Math.random() * list.length)];
-            }, 50);
-
-            setTimeout(() => {
-                clearInterval(interval);
-                const finalChoice = list[Math.floor(Math.random() * list.length)];
-                slotDisplay.innerText = finalChoice;
-                slotDisplay.classList.remove('blur');
-                slotDisplay.classList.add('highlight');
-                setTimeout(() => slotDisplay.classList.remove('highlight'), 300);
-                callback(finalChoice);
-            }, duration);
-        }
-
-        function startCategorySlot() {
-            const categories = Object.keys(activeData);
-            if(categories.length === 0) {
-                alert("선택된 카테고리가 없습니다. 설정을 확인해주세요.");
-                return;
-            }
-
-            statusText.innerText = "어떤 종류를 먹을까?";
-            spinText(categories, 1500, (result) => {
-                currentCategory = result;
-                statusText.innerText = `선택: ${currentCategory}`;
-                setButtonState('active', '메뉴 뽑기 >'); // 파란색
-                step = 1;
-            });
-        }
-
-        function startMenuSlot() {
-            const menus = activeData[currentCategory];
-            statusText.innerText = "두구두구...";
-            
-            spinText(menus, 2000, (result) => {
-                statusText.innerText = "오늘의 점심 메뉴 확정!";
-                updateHistory(currentCategory, result);
-                
-                setButtonState('restart', '다시 하기 ↺'); // 노란색
-                step = 2;
-            });
-        }
-
-        function resetGame() {
-            step = 0;
-            currentCategory = "";
-            slotDisplay.innerText = "READY";
-            statusText.innerText = "오늘 점심 뭐 먹지?";
-            setButtonState('active', '메뉴 추천받기'); // 파란색
-        }
-
-        // === 3. 히스토리 로직 ===
-        function updateHistory(cat, menu) {
-            // 새 기록 추가 (앞에 추가)
-            history.unshift({ cat, menu });
-            
-            // 3개까지만 유지
-            if (history.length > 3) {
-                history.pop();
-            }
-
-            renderHistory();
-        }
-
-        function renderHistory() {
-            if (history.length === 0) return;
-            
-            historyList.innerHTML = '';
-            history.forEach((item, index) => {
-                const li = document.createElement('li');
-                li.className = 'history-item';
-                li.innerHTML = `
-                    <span class="rank-badge">${index + 1}</span>
-                    <span>${item.cat} > <strong>${item.menu}</strong></span>
-                `;
-                historyList.appendChild(li);
-            });
-        }
-
-    </script>
+/* ───────────── 돈 처리 & 파산 ───────────── */
+function gain(P,amt,quiet){ P.cash+=amt; if(!quiet)log(P.token+' +'+FMT(amt)+'원'); renderAll(); }
+function payToFund(P,amt){ const paid=liquidateFor(P,amt); fund+=paid; log(P.token+' 데이트 기금에 '+FMT(paid)+'원 납부'); renderAll(); }
+function collectFromAll(P,amt){
+  players.forEach(o=>{ if(o!==P&&!o.dead){ const paid=liquidateFor(o,amt); P.cash+=paid; } });
+  log(P.token+' 모두에게 축하금을 받았어요 💐'); renderAll(); checkWin();
+}
+function pay(P,amt,to,quiet){
+  const paid=liquidateFor(P,amt);
+  if(to)to.cash+=paid;
+  if(!quiet)log(P.token+' -'+FMT(paid)+'원'+(to?' → '+to.token+to.name:''));
+  renderAll();
+}
+function liquidateFor(P,amt){
+  if(P.cash>=amt){ P.cash-=amt; return amt; }
+  // 자동 매각: 싼 장소부터 절반 가격 환급
+  const mine=[...P.props].sort((a,b)=>TILES[a].price-TILES[b].price);
+  for(const i of mine){
+    if(P.cash>=amt)break;
+    const t=TILES[i];
+    const refund=Math.ceil((t.price+(t.level||0)*Math.ceil(t.price*0.6))/2);
+    P.cash+=refund; t.owner=null; t.level=0; P.props=P.props.filter(x=>x!==i);
+    log('💸 '+P.token+' 자금 부족! '+t.name+' 매각 (+'+FMT(refund)+'원)');
+  }
+  if(P.cash>=amt){ P.cash-=amt; return amt; }
+  // 파산
+  const remain=P.cash; P.cash=0; P.dead=true;
+  log('☠️ '+P.name+'님 파산!');
+  toast('☠️ '+P.name+'님이 파산했어요');
+  renderAll();
+  return remain;
+}
+function checkWin(){
+  const alive=players.filter(p=>!p.dead);
+  if(alive.length===1){
+    const w=alive[0];
+    openModal(`<h2 style="text-align:center">🏆 ${w.token} ${w.name} 승리!</h2>
+      <div class="body" style="text-align:center">서울 데이트 명소 ${w.props.length}곳의 주인이 되었어요.<br>최종 자산 ${FMT(w.cash)}원 💕<br><br>이제 진짜 데이트하러 가볼까요?</div>`,
+      [{label:'다시 하기',fn:()=>location.reload()}]);
+    $('#rollBtn').disabled=true;
+    return true;
+  }
+  if(players[cur].dead){ endTurn(); return true; }
+  return false;
+}
+</script>
 </body>
 </html>
